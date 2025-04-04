@@ -6,14 +6,12 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { DatabaseModule } from './database/database.module';
 import { UserModule } from './user/user.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       validationSchema: Joi.object({
-        KAKAO_ID: Joi.string().required(),
-        KAKAO_SECRET: Joi.string().required(),
-        KAKAO_REDIRECT_URI: Joi.string().required(),
         POSTGRES_HOST: Joi.string().required(),
         POSTGRES_PORT: Joi.number().required(),
         POSTGRES_USER: Joi.string().required(),
@@ -33,6 +31,7 @@ import { UserModule } from './user/user.module';
     DatabaseModule,
     AuthModule,
     UserModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService],
