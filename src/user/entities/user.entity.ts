@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 
 @Entity()
-export default class Auth {
+export default class User {
   @PrimaryGeneratedColumn()
   id: string;
 
