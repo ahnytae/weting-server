@@ -29,25 +29,25 @@ export class UserService {
   }
 
   async createUser(userDto: CreateUserDto) {
-    this.userRepository.create(userDto);
+    await this.userRepository.save(userDto);
   }
 
-  async joinUser() {
-    // const user = await this.userRepository.findOneBy({
-    //   memberId,
-    // });
-    //
-    // try {
-    //   await this.userRepository.save({
-    //     ...user,
-    //     createdAt: new Date(),
-    //     deletedAt: null,
-    //     isValidate: false,
-    //     mailValidateCode: null,
-    //   });
-    // } catch {
-    //   throw new NotFoundException('Not found user');
-    // }
+  async joinUser(memberId: string) {
+    const user = await this.userRepository.findOneBy({
+      memberId,
+    });
+
+    try {
+      await this.userRepository.save({
+        ...user,
+        createdAt: new Date(),
+        deletedAt: null,
+        isValidate: false,
+        mailValidateCode: null,
+      });
+    } catch {
+      throw new NotFoundException('Not found user');
+    }
   }
 
   async mailValidate(mailRequestDto: MailRequestDto) {

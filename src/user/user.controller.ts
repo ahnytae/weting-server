@@ -3,7 +3,6 @@ import { UserService } from './user.service';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger/dist';
 import {
   CreatedUserResponse,
-  JoinUserDto,
   CreateUserDto,
   MailRequestDto,
   ValidateCheckDto,
@@ -64,8 +63,8 @@ export class UserController {
     status: 201,
     description: '회원가입 성공',
   })
-  async signUp(@Body() userDto: CreateUserDto) {
-    return await this.userService.joinUser();
+  async signUp(@Body() memberIdDto: MemberIdDto) {
+    return await this.userService.joinUser(memberIdDto.memberId);
   }
 
   @Post('/create')

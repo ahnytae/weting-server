@@ -28,20 +28,21 @@ export default class User {
   @Column({ unique: true, nullable: true })
   email: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ nullable: true })
   createdAt: Date;
 
-  @DeleteDateColumn({ default: null })
+  @DeleteDateColumn({ default: null, nullable: true })
   deletedAt: Date | null;
 
   @Column({
     type: 'enum',
     enum: Object.values(GENDER),
     default: GENDER.MALE,
+    nullable: true,
   })
   gender: GENDER;
 
-  @Column({ type: 'date' })
+  @Column({ type: 'date', nullable: true })
   birth: Date;
 
   // Todo: need to connect S3
@@ -54,9 +55,9 @@ export default class User {
   // @Column({ type: 'varchar', length: 255 })
   // businessCard: string;
 
-  @Column()
+  @Column({ nullable: true })
   isValidate: boolean;
 
-  @Column()
+  @Column({ nullable: true })
   mailValidateCode: number | null;
 }
