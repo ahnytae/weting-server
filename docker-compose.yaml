@@ -1,16 +1,16 @@
 services:
-#  weting_nginx:
-#    container_name: weting_nginx
-#    image: nginx:stable-alpine
-#    volumes:
-#      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-#      - ./nginx/templates:/etc/nginx/templates
-#    ports:
-#      - "80:80"
-#    depends_on:
-#      - weting_server
-#    networks:
-#      - weting-network
+  #  weting_nginx:
+  #    container_name: weting_nginx
+  #    image: nginx:stable-alpine
+  #    volumes:
+  #      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+  #      - ./nginx/templates:/etc/nginx/templates
+  #    ports:
+  #      - "80:80"
+  #    depends_on:
+  #      - weting_server
+  #    networks:
+  #      - weting-network
   weting_server:
     container_name: weting-server
     build:

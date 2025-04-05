@@ -5,6 +5,7 @@ import {
   Entity,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { GENDER } from '../types/userType';
 
 @Entity()
 export default class User {
@@ -32,4 +33,30 @@ export default class User {
 
   @DeleteDateColumn({ default: null })
   deletedAt: Date | null;
+
+  @Column({
+    type: 'enum',
+    enum: Object.values(GENDER),
+    default: GENDER.MALE,
+  })
+  gender: GENDER;
+
+  @Column({ type: 'date' })
+  birth: Date;
+
+  // Todo: need to connect S3
+  // @Column({ type: 'varchar', length: 255 })
+  // mainProfileImage: string;
+  //
+  // @Column({ type: 'varchar', length: 255 })
+  // subProfileImage: string;
+  //
+  // @Column({ type: 'varchar', length: 255 })
+  // businessCard: string;
+
+  @Column()
+  isValidate: boolean;
+
+  @Column()
+  mailValidateCode: number | null;
 }
