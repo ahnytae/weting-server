@@ -46,14 +46,22 @@ export class CreateUserDto {
 
   @IsString()
   @IsNotEmpty()
-  @ApiProperty({ example: '카톡 이름' })
-  name: string;
+  @ApiProperty({ example: '프로필명' })
+  nickname: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ example: '이메일' })
+  email: string;
 
   @IsEnum(GENDER)
+  @IsNotEmpty()
+  @ApiProperty({ example: 'MALE | FEMALE' })
   gender: GENDER;
 
   @IsDate()
   @IsNotEmpty()
+  @ApiProperty({ example: '생년월일 Date 형식' })
   birth: Date;
 
   // Todo: Image..

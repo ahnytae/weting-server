@@ -3,32 +3,28 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { GENDER } from '../types/userType';
+import Email from '../../email/entities/email.entity';
 
 @Entity()
 export default class User {
   @PrimaryGeneratedColumn()
   id: string;
 
-  @Column({ unique: true, nullable: true })
+  @Column({ unique: true })
   memberId: string;
 
-  @Column({
-    nullable: true,
-  })
-  name: string;
-
-  @Column({
-    nullable: true,
-  })
+  @Column()
   nickname: string;
 
-  @Column({ unique: true, nullable: true })
+  @OneToOne(() => Email, (email) => email.email)
+  @Column({ unique: true })
   email: string;
 
-  @CreateDateColumn({ nullable: true })
+  @CreateDateColumn()
   createdAt: Date;
 
   @DeleteDateColumn({ default: null, nullable: true })
@@ -38,11 +34,10 @@ export default class User {
     type: 'enum',
     enum: Object.values(GENDER),
     default: GENDER.MALE,
-    nullable: true,
   })
   gender: GENDER;
 
-  @Column({ type: 'date', nullable: true })
+  @Column()
   birth: Date;
 
   // Todo: need to connect S3
@@ -54,10 +49,4 @@ export default class User {
   //
   // @Column({ type: 'varchar', length: 255 })
   // businessCard: string;
-
-  @Column({ nullable: true })
-  isValidate: boolean;
-
-  @Column({ nullable: true })
-  mailValidateCode: number | null;
 }

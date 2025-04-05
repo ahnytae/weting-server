@@ -27,6 +27,18 @@ export class UserController {
     return await this.userService.findGetUser(memberIdDto.memberId);
   }
 
+  @Post('/create')
+  @ApiOperation({
+    summary: '회원가입',
+    description: '회원가입 - 회원정보 입력',
+  })
+  @ApiResponse({
+    status: 201,
+  })
+  async createUser(@Body() userDto: CreateUserDto) {
+    return await this.userService.createUser(userDto);
+  }
+
   @Post('/validate')
   @ApiOperation({
     summary: '이메일 인증',
@@ -34,7 +46,6 @@ export class UserController {
   })
   @ApiResponse({
     status: 201,
-    description: '이메일 인증 코드 발송 성공',
   })
   async mailValidate(@Body() mailRequestDto: MailRequestDto) {
     return await this.userService.mailValidate(mailRequestDto);
@@ -43,40 +54,12 @@ export class UserController {
   @Post('/validate/check')
   @ApiOperation({
     summary: '이메일 인증 코드 확인',
-    description: '이메일 인증 코드 확인',
   })
   @ApiResponse({
     status: 200,
-    description: '이메일 인증 코드 확인 성공',
   })
   async checkMailValidate(@Body() dto: ValidateCheckDto) {
     const { email, code } = dto;
     return await this.userService.checkMailValidate(email, code);
-  }
-
-  @Post('/signup')
-  @ApiOperation({
-    summary: '회원가입',
-    description: '회원가입',
-  })
-  @ApiResponse({
-    status: 201,
-    description: '회원가입 성공',
-  })
-  async signUp(@Body() memberIdDto: MemberIdDto) {
-    return await this.userService.joinUser(memberIdDto.memberId);
-  }
-
-  @Post('/create')
-  @ApiOperation({
-    summary: '회원가입 - 회원 정보',
-    description: '회원가입 - 회원정보 입력',
-  })
-  @ApiResponse({
-    status: 201,
-    description: '회원가입 - 회원정보 입력 성공',
-  })
-  async createUser(@Body() userDto: CreateUserDto) {
-    return await this.userService.createUser(userDto);
   }
 }

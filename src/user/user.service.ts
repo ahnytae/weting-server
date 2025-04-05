@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUserDto, MailRequestDto } from './dto/create-user.dto';
 import User from './entities/user.entity';
+import Email from '../email/entities/email.entity';
 import EmailService from '../email/email.service';
 
 @Injectable()
@@ -10,6 +11,8 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Email)
+    private readonly emailRepository: Repository<Email>,
     private readonly emailService: EmailService,
   ) {}
 
@@ -17,8 +20,6 @@ export class UserService {
     try {
       const findUser = await this.userRepository.findOneBy({ memberId });
       if (!findUser) {
-        // await this.createUser(userDto);
-
         return { isJoined: false };
       }
       return {
@@ -29,62 +30,71 @@ export class UserService {
   }
 
   async createUser(userDto: CreateUserDto) {
-    await this.userRepository.save(userDto);
-  }
-
-  async joinUser(memberId: string) {
-    const user = await this.userRepository.findOneBy({
-      memberId,
+    await this.userRepository.save({
+      ...userDto,
+      createdAt: new Date(),
+      deletedAt: null,
     });
-
-    try {
-      await this.userRepository.save({
-        ...user,
-        createdAt: new Date(),
-        deletedAt: null,
-        isValidate: false,
-        mailValidateCode: null,
-      });
-    } catch {
-      throw new NotFoundException('Not found user');
-    }
   }
 
   async mailValidate(mailRequestDto: MailRequestDto) {
     const { memberId, email } = mailRequestDto;
     const randomCode = this.generateRandomCode();
 
+    const findUser = await this.userRepository.findOneBy({ memberId });
+
+    if (!findUser || findUser.email !== email) {
+      throw new NotFoundException('Not found user');
+    }
+
     try {
       await this.emailService.sendMail({
         to: email,
-        subject: 'weting 이메일 인증',
+        subject: '[weting] 이메일 인증',
         html: `<h1>인증번호는 ${randomCode} 입니다.</h1>`,
       });
 
-      // Todo: Redis 저장 필요
-      await this.userRepository.update(
-        { memberId },
-        { email, mailValidateCode: randomCode },
-      );
+      await this.emailRepository.save({
+        email: email,
+        isValidate: false,
+        createdAt: new Date(),
+
+        // Todo: Redis 저장 필요
+        randomCode: randomCode,
+      });
+
+      await this.userRepository.save({
+        ...findUser,
+        email,
+      });
     } catch {
       throw new NotFoundException('Not found email');
     }
   }
 
   async checkMailValidate(email: string, code: string) {
-    const findUser = await this.userRepository.findOneBy({ email });
+    const findUser = await this.userRepository.findOne({
+      where: { email },
+    });
     if (!findUser) {
       throw new NotFoundException('Not found user');
     }
 
-    if (findUser.mailValidateCode !== +code) {
+    const checkRandomCode = await this.emailRepository.findOne({
+      where: { email },
+    });
+    if (!checkRandomCode) {
+      throw new NotFoundException('Not found email');
+    }
+
+    if (checkRandomCode.randomCode !== +code) {
       throw new NotFoundException('miss match code');
     }
 
-    await this.userRepository.update(
-      { email },
-      { isValidate: true, mailValidateCode: null },
-    );
+    await this.emailRepository.save({
+      ...checkRandomCode,
+      isValidate: true,
+    });
   }
 
   private generateRandomCode() {
