@@ -1,42 +1,50 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { UserService } from './user.service';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger/dist';
+import { ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger/dist';
 import {
-  CreatedUserResponse,
   CreateUserDto,
-  MailRequestDto,
-  ValidateCheckDto,
-  MemberIdDto,
+  CreatedResponseDto,
 } from './dto/create-user.dto';
+import { AuthService } from 'src/auth/auth.service';
+import { TOKEN_TYPE } from 'src/auth/dto/signin.dto';
+import { MailRequestDto, MailValidateDto } from './dto/mail-validate.dto';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
-
-  @Post('/login')
-  @ApiOperation({
-    summary: 'Login',
-    description: '카톡 로그인, 미가입된 유저일 시 회원가입 처리',
-  })
-  @ApiResponse({
-    status: 201,
-    description: ' 성공적으로 로그인 되었습니다.',
-    type: CreatedUserResponse,
-  })
-  async loginUser(@Body() memberIdDto: MemberIdDto) {
-    return await this.userService.findGetUser(memberIdDto.memberId);
-  }
+  constructor(
+    private readonly userService: UserService,
+    private readonly authService: AuthService,
+  ) {}
 
   @Post('/create')
   @ApiOperation({
     summary: '회원가입',
     description: '회원가입 - 회원정보 입력',
   })
+  @ApiBody({
+    type: CreateUserDto,
+  })
   @ApiResponse({
     status: 201,
+    type: CreatedResponseDto,
   })
   async createUser(@Body() userDto: CreateUserDto) {
-    return await this.userService.createUser(userDto);
+    const { memberId } = userDto;
+
+    await this.userService.createUser(userDto);
+    const accessToken = await this.authService.generateToken(
+      memberId,
+      TOKEN_TYPE['ACCESS'],
+    );
+    const refreshToken = await this.authService.generateToken(
+      memberId,
+      TOKEN_TYPE['REFRESH'],
+    );
+
+    return {
+      accessToken,
+      refreshToken,
+    };
   }
 
   @Post('/validate')
@@ -56,9 +64,9 @@ export class UserController {
     summary: '이메일 인증 코드 확인',
   })
   @ApiResponse({
-    status: 200,
+    status: 201,
   })
-  async checkMailValidate(@Body() dto: ValidateCheckDto) {
+  async checkMailValidate(@Body() dto: MailValidateDto) {
     const { email, code } = dto;
     return await this.userService.checkMailValidate(email, code);
   }

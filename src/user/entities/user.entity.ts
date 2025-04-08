@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { GENDER } from '../types/userType';
 import Email from '../../email/entities/email.entity';
+import Auth from 'src/auth/entities/auth.entity';
 
 @Entity()
 export default class User {
@@ -39,6 +40,10 @@ export default class User {
 
   @Column()
   birth: Date;
+
+  @OneToOne(() => Auth, (auth) => auth.user)
+  @Column()
+  auth: Auth;
 
   // Todo: need to connect S3
   // @Column({ type: 'varchar', length: 255 })
