@@ -17,8 +17,12 @@ export const ERROR_CODES = {
     message: '유효하지 않은 access token 입니다.',
   } as const,
   ERR_004: {
-    code: 'INVALID_TOKEN',
-    message: '유효하지 않은 token 입니다.',
+    code: 'EXPIRED_ACCESS_TOKEN',
+    message: 'access token이 만료되었습니다.',
+  } as const,
+  ERR_005: {
+    code: 'EXPIRED_REFRESH_TOKEN',
+    message: 'refresh token이 만료되었습니다.',
   } as const,
 
   ERR_011: {

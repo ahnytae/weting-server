@@ -6,6 +6,15 @@ export enum TOKEN_TYPE {
   REFRESH = 'REFRESH',
 }
 
+export class AutoSigninDto {
+  @ApiProperty({
+    description: 'refresh token',
+  })
+  @IsString()
+  @IsNotEmpty()
+  refreshToken: string;
+}
+
 export class SigninDto {
   @ApiProperty({
     description: 'kakao member id',
@@ -13,12 +22,6 @@ export class SigninDto {
   @IsString()
   @IsNotEmpty()
   memberId: string;
-
-  @ApiProperty({
-    description: 'refresh token',
-  })
-  @IsString()
-  refreshToken: string;
 }
 
 export class SigninResponseDto {

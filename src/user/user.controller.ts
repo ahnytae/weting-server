@@ -9,10 +9,7 @@ import { MailRequestDto, MailValidateDto } from './dto/mail-validate.dto';
 
 @Controller('user')
 export class UserController {
-  constructor(
-    private readonly userService: UserService,
-    private readonly authService: AuthService,
-  ) {}
+  constructor(private readonly userService: UserService) {}
 
   @Post('/create')
   @ApiOperation({
@@ -44,11 +41,8 @@ export class UserController {
       },
     },
   })
-  async createUser(@Body() userDto: CreateUserDto, @Res() res: Response) {
-    const { accessToken, refreshToken } =
-      await this.userService.createUser(userDto);
-    res.setHeader('Authorization', `Bearer ${accessToken}`);
-    res.setHeader('Refresh-Token', refreshToken);
+  async createUser(@Body() userDto: CreateUserDto) {
+    await this.userService.createUser(userDto);
   }
 
   @Post('/validate')
@@ -70,8 +64,13 @@ export class UserController {
   @ApiResponse({
     status: 201,
   })
-  async checkMailValidate(@Body() dto: MailValidateDto) {
+  async checkMailValidate(@Body() dto: MailValidateDto, @Res() res: Response) {
     const { email, code } = dto;
-    await this.userService.checkMailValidate(email, code);
+
+    const { accessToken, refreshToken } =
+      await this.userService.checkMailValidate(email, code);
+
+    res.setHeader('Authorization', `Bearer ${accessToken}`);
+    res.setHeader('Refresh-Token', refreshToken);
   }
 }

@@ -48,7 +48,9 @@ export class UserService {
         return null;
       }
       return findUser;
-    } catch {}
+    } catch {
+      throw new NotFoundException(ERROR_CODES.ERR_001);
+    }
   }
 
   async createUser(userDto: CreateUserDto) {
@@ -59,13 +61,13 @@ export class UserService {
       deletedAt: null,
     });
 
-    const { accessToken, refreshToken } = await this.generateJwtToken(memberId);
-    await this.authService.saveAuth(createdUser, refreshToken);
-
-    return {
-      accessToken,
-      refreshToken,
-    };
+    // const { accessToken, refreshToken } = await this.generateJwtToken(memberId);
+    // await this.authService.saveAuth(createdUser, refreshToken);
+    //
+    // return {
+    //   accessToken,
+    //   refreshToken,
+    // };
   }
 
   async mailValidate(mailRequestDto: MailRequestDto) {
@@ -129,6 +131,16 @@ export class UserService {
       checkRandomCode,
       isValidate: true,
     });
+
+    const { accessToken, refreshToken } = await this.generateJwtToken(
+      findMail.user.memberId,
+    );
+    await this.authService.saveAuth(findMail.user, refreshToken);
+
+    return {
+      accessToken,
+      refreshToken,
+    };
   }
 
   private async generateJwtToken(memberId: string) {

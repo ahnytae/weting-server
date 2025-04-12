@@ -20,18 +20,69 @@ export class AuthService {
     private readonly configService: ConfigService,
   ) {}
 
-  async serviceSignin(memberId: string, refreshToken: string) {
-    const findUser = await this.userService.findUserOrNull(memberId);
-    const userAuth = await this.authRepository.findOneBy({
-      user: { memberId },
-    });
+  async reissue(refreshToken: string) {
+    try {
+      this.jwtService.verify(refreshToken, {
+        secret: this.configService.get('JWT_REFRESH_SECRET'),
+      });
+    } catch (error) {
+      throw new NotFoundException(ERROR_CODES.ERR_002);
+    }
 
-    if (!findUser) {
+    const { isExpired } = await this.verifyToken(refreshToken);
+
+    if (isExpired) {
+      throw new NotFoundException(ERROR_CODES.ERR_005);
+    }
+
+    const auth = await this.authRepository.findOneBy({ refreshToken });
+
+    if (!auth) {
       throw new NotFoundException(ERROR_CODES.ERR_001);
     }
 
-    if (refreshToken !== userAuth.refreshToken) {
-      throw new NotFoundException(ERROR_CODES.ERR_002);
+    const { memberId } = auth.user;
+    const newAccessToken = await this.generateToken(
+      memberId,
+      TOKEN_TYPE.ACCESS,
+    );
+
+    return {
+      newAccessToken: newAccessToken.token,
+    };
+  }
+
+  async autoLogin(refreshToken: string) {
+    const auth = await this.authRepository.findOneBy({ refreshToken });
+
+    if (!auth) {
+      throw new NotFoundException(ERROR_CODES.ERR_001);
+    }
+
+    const { memberId } = auth.user;
+    const newAccessToken = await this.generateToken(
+      memberId,
+      TOKEN_TYPE.ACCESS,
+    );
+    const newRefreshToken = await this.generateToken(
+      memberId,
+      TOKEN_TYPE.REFRESH,
+    );
+
+    auth.refreshToken = newRefreshToken.token;
+    await this.authRepository.save(auth);
+
+    return {
+      newAccessToken: newAccessToken.token,
+      newRefreshToken: newRefreshToken.token,
+    };
+  }
+
+  async serviceSignin(memberId: string) {
+    const findUser = await this.userService.findUserOrNull(memberId);
+
+    if (!findUser) {
+      throw new NotFoundException(ERROR_CODES.ERR_001);
     }
 
     const accessToken = await this.generateToken(memberId, TOKEN_TYPE.ACCESS);
@@ -70,5 +121,22 @@ export class AuthService {
     });
 
     await this.authRepository.save(auth);
+  }
+
+  private async verifyToken(token: string): Promise<{
+    isExpired: boolean;
+  }> {
+    try {
+      const payload = this.jwtService.decode(token);
+
+      const expirationDate = new Date(payload.exp * 1000);
+      const now = new Date();
+      const isExpired = expirationDate.getTime() <= now.getTime();
+
+      return { isExpired };
+    } catch {
+      return { isExpired: false };
+      // throw new UnauthorizedException(ErrorCodes.ERR_01);
+    }
   }
 }
