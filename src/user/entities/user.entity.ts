@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  JoinColumn,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -21,9 +22,9 @@ export default class User {
   @Column()
   nickname: string;
 
-  @OneToOne(() => Email, (email) => email.email)
-  @Column({ unique: true })
-  email: string;
+  @OneToOne(() => Email, (email) => email.user, { nullable: true })
+  @JoinColumn()
+  email: Email | null;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -42,7 +43,6 @@ export default class User {
   birth: Date;
 
   @OneToOne(() => Auth, (auth) => auth.user)
-  @Column()
   auth: Auth;
 
   // Todo: need to connect S3

@@ -1,4 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  forwardRef,
+  HttpException,
+  Inject,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -6,6 +13,10 @@ import User from './entities/user.entity';
 import Email from '../email/entities/email.entity';
 import EmailService from '../email/email.service';
 import { MailRequestDto } from './dto/mail-validate.dto';
+import { JwtPayload } from 'src/auth/type/auth.types';
+import { ERROR_CODES } from '../common/errorCodes';
+import { TOKEN_TYPE } from '../auth/dto/signin.dto';
+import { AuthService } from 'src/auth/auth.service';
 
 @Injectable()
 export class UserService {
@@ -15,27 +26,46 @@ export class UserService {
     @InjectRepository(Email)
     private readonly emailRepository: Repository<Email>,
     private readonly emailService: EmailService,
+    @Inject(forwardRef(() => AuthService))
+    private readonly authService: AuthService,
   ) {}
 
-  async findGetUser(memberId: string) {
+  async validateJwtToken(payload: JwtPayload): Promise<User> {
+    const { memberId } = payload;
+    const user = this.userRepository.findOneBy({ memberId });
+
+    if (!user) {
+      throw new UnauthorizedException(ERROR_CODES.ERR_004);
+    }
+
+    return user;
+  }
+
+  async findUserOrNull(memberId: string) {
     try {
       const findUser = await this.userRepository.findOneBy({ memberId });
       if (!findUser) {
-        return { isJoined: false };
+        return null;
       }
-      return {
-        isJoined: true,
-        user: findUser,
-      };
+      return findUser;
     } catch {}
   }
 
   async createUser(userDto: CreateUserDto) {
-    await this.userRepository.save({
+    const { memberId } = userDto;
+    const createdUser = await this.userRepository.save({
       ...userDto,
       createdAt: new Date(),
       deletedAt: null,
     });
+
+    const { accessToken, refreshToken } = await this.generateJwtToken(memberId);
+    await this.authService.saveAuth(createdUser, refreshToken);
+
+    return {
+      accessToken,
+      refreshToken,
+    };
   }
 
   async mailValidate(mailRequestDto: MailRequestDto) {
@@ -44,8 +74,14 @@ export class UserService {
 
     const findUser = await this.userRepository.findOneBy({ memberId });
 
-    if (!findUser || findUser.email !== email) {
-      throw new NotFoundException('Not found user');
+    if (!findUser) {
+      throw new NotFoundException(ERROR_CODES.ERR_001);
+    }
+
+    const findEmail = await this.emailRepository.findOneBy({ email });
+
+    if (!findEmail) {
+      throw new NotFoundException(ERROR_CODES.ERR_013);
     }
 
     try {
@@ -55,47 +91,60 @@ export class UserService {
         html: `<h1>인증번호는 ${randomCode} 입니다.</h1>`,
       });
 
-      await this.emailRepository.save({
+      const saveEmail = await this.emailRepository.save({
         email: email,
-        isValidate: false,
         createdAt: new Date(),
-
         // Todo: Redis 저장 필요
         randomCode: randomCode,
       });
 
       await this.userRepository.save({
         ...findUser,
-        email,
+        email: saveEmail,
       });
     } catch {
-      throw new NotFoundException('Not found email');
+      throw new HttpException('이메일 전송에 실패했습니다.', 500);
     }
   }
 
   async checkMailValidate(email: string, code: string) {
-    const findUser = await this.userRepository.findOne({
-      where: { email },
-    });
-    if (!findUser) {
-      throw new NotFoundException('Not found user');
+    const findMail = await this.emailRepository.findOneBy({ email });
+
+    if (!findMail) {
+      throw new NotFoundException(ERROR_CODES.ERR_013);
     }
 
-    const checkRandomCode = await this.emailRepository.findOne({
-      where: { email },
-    });
+    const checkRandomCode = findMail.randomCode;
+
     if (!checkRandomCode) {
-      throw new NotFoundException('Not found email');
+      throw new NotFoundException(ERROR_CODES.ERR_013);
     }
 
-    if (checkRandomCode.randomCode !== +code) {
-      throw new NotFoundException('miss match code');
+    if (checkRandomCode !== +code) {
+      throw new NotFoundException(ERROR_CODES.ERR_014);
     }
 
     await this.emailRepository.save({
-      ...checkRandomCode,
+      ...findMail,
+      checkRandomCode,
       isValidate: true,
     });
+  }
+
+  private async generateJwtToken(memberId: string) {
+    const accessToken = await this.authService.generateToken(
+      memberId,
+      TOKEN_TYPE['ACCESS'],
+    );
+    const refreshToken = await this.authService.generateToken(
+      memberId,
+      TOKEN_TYPE['REFRESH'],
+    );
+
+    return {
+      accessToken: accessToken.token,
+      refreshToken: refreshToken.token,
+    };
   }
 
   private generateRandomCode() {

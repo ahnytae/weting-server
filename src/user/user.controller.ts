@@ -1,10 +1,8 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, Res } from '@nestjs/common';
+import { Response } from 'express';
 import { UserService } from './user.service';
 import { ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger/dist';
-import {
-  CreateUserDto,
-  CreatedResponseDto,
-} from './dto/create-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 import { AuthService } from 'src/auth/auth.service';
 import { TOKEN_TYPE } from 'src/auth/dto/signin.dto';
 import { MailRequestDto, MailValidateDto } from './dto/mail-validate.dto';
@@ -24,27 +22,33 @@ export class UserController {
   @ApiBody({
     type: CreateUserDto,
   })
+  @ApiOperation({ summary: '로그인 후 토큰 반환 (Header에)' })
   @ApiResponse({
     status: 201,
-    type: CreatedResponseDto,
+    description: '헤더로 Access, Refresh 토큰 반환.',
+    headers: {
+      Authorization: {
+        description: 'Access Token',
+        schema: {
+          type: 'string',
+          example:
+            'Authorization Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+        },
+      },
+      'Refresh-Token': {
+        description: 'Refresh token',
+        schema: {
+          type: 'string',
+          example: 'Refresh-Token = eyjeifleifk23452....',
+        },
+      },
+    },
   })
-  async createUser(@Body() userDto: CreateUserDto) {
-    const { memberId } = userDto;
-
-    await this.userService.createUser(userDto);
-    const accessToken = await this.authService.generateToken(
-      memberId,
-      TOKEN_TYPE['ACCESS'],
-    );
-    const refreshToken = await this.authService.generateToken(
-      memberId,
-      TOKEN_TYPE['REFRESH'],
-    );
-
-    return {
-      accessToken,
-      refreshToken,
-    };
+  async createUser(@Body() userDto: CreateUserDto, @Res() res: Response) {
+    const { accessToken, refreshToken } =
+      await this.userService.createUser(userDto);
+    res.setHeader('Authorization', `Bearer ${accessToken}`);
+    res.setHeader('Refresh-Token', refreshToken);
   }
 
   @Post('/validate')
@@ -68,6 +72,6 @@ export class UserController {
   })
   async checkMailValidate(@Body() dto: MailValidateDto) {
     const { email, code } = dto;
-    return await this.userService.checkMailValidate(email, code);
+    await this.userService.checkMailValidate(email, code);
   }
 }

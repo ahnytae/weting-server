@@ -1,12 +1,11 @@
-import User from 'src/user/entities/user.entity';
 import {
-  BeforeInsert,
-  BeforeUpdate,
   Column,
   Entity,
+  JoinColumn,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import User from '../../user/entities/user.entity';
 
 @Entity()
 export default class Auth {
@@ -16,16 +15,10 @@ export default class Auth {
   @Column()
   refreshToken: string;
 
-  @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
-  lastLogin: Date;
-
-  @BeforeInsert()
-  @BeforeUpdate()
-  updateLastLogin() {
-    this.lastLogin = new Date();
-  }
+  // @Column()
+  // lastLogin: Date;
 
   @OneToOne(() => User, (user) => user.auth)
-  @Column()
+  @JoinColumn()
   user: User;
 }

@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -13,10 +14,12 @@ export default class Email {
   id: string;
 
   @OneToOne(() => User, (user) => user.email)
+  user: User;
+
   @Column({ unique: true })
   email: string;
 
-  @Column()
+  @Column({ default: false })
   isValidate: boolean;
 
   @CreateDateColumn()

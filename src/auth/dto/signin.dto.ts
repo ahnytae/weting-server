@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export enum TOKEN_TYPE {
   ACCESS = 'ACCESS',
@@ -26,5 +26,5 @@ export class SigninResponseDto {
     description: 'access token or refresh token',
     example: '075b9be6-6d99-4e08-942d-4e392fef80a7',
   })
-  token: string;
+  accessToken: string;
 }

@@ -19,11 +19,6 @@ export class CreateUserDto {
   @ApiProperty({ example: '프로필명' })
   nickname: string;
 
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty({ example: '이메일' })
-  email: string;
-
   @IsEnum(GENDER)
   @IsNotEmpty()
   @ApiProperty({ example: 'MALE | FEMALE' })
@@ -35,12 +30,4 @@ export class CreateUserDto {
   birth: Date;
 
   // Todo: Image..
-}
-
-export class CreatedResponseDto {
-  @IsString()
-  token: {
-    accessToken: string;
-    refershToken: string;
-  };
 }
