@@ -16,7 +16,7 @@ export default class Email {
   @OneToOne(() => User, (user) => user.email)
   user: User;
 
-  @Column({ unique: true })
+  @Column()
   email: string;
 
   @Column({ default: false })

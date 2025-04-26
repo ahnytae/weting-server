@@ -1,18 +1,20 @@
-import {
-  IsBoolean,
-  IsDate,
-  IsEnum,
-  IsNotEmpty,
-  IsString,
-} from 'class-validator';
+import { IsDate, IsEnum, IsNotEmpty, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { GENDER } from '../types/userType';
+import { GENDER } from '../../user/types/userType';
 
 export class CreateUserDto {
   @IsString()
   @IsNotEmpty()
   @ApiProperty({ example: '카카오 회원 고유 아이디' })
   memberId: string;
+
+  @ApiProperty({
+    description: '카카오 액세스 토큰',
+    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+  })
+  @IsString()
+  @IsNotEmpty()
+  kakaoAccessToken: string;
 
   @IsString()
   @IsNotEmpty()

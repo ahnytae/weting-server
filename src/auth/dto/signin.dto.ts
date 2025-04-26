@@ -22,12 +22,11 @@ export class SigninDto {
   @IsString()
   @IsNotEmpty()
   memberId: string;
-}
 
-export class SigninResponseDto {
   @ApiProperty({
-    description: 'access token or refresh token',
-    example: '075b9be6-6d99-4e08-942d-4e392fef80a7',
+    description: 'kakao access token',
   })
-  accessToken: string;
+  @IsString()
+  @IsNotEmpty()
+  kakaoAccessToken: string;
 }

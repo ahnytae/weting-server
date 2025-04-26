@@ -24,6 +24,10 @@ export const ERROR_CODES = {
     code: 'EXPIRED_REFRESH_TOKEN',
     message: 'refresh token이 만료되었습니다.',
   } as const,
+  ERR_006: {
+    code: 'ALREADY_JOINED_IN',
+    message: '이미 가입된 회원 입니다.',
+  } as const,
 
   ERR_011: {
     code: 'INVALID_EMAIL_CODE',

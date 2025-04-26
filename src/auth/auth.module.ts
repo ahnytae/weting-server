@@ -8,11 +8,13 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import Auth from './entities/auth.entity';
+import { EmailModule } from '../email/email.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Auth]),
     forwardRef(() => UserModule),
+    EmailModule,
     ConfigModule,
     PassportModule,
     JwtModule.register({}),
