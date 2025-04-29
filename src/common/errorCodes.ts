@@ -45,4 +45,8 @@ export const ERROR_CODES = {
     code: 'INVALID_CODE',
     message: '이메일 인증 코드가 유효하지 않습니다.',
   } as const,
+  ERR_015: {
+    code: 'NOT_VERIFY_EMAIL',
+    message: '이메일 인증을 먼저 해주세요.',
+  } as const,
 };

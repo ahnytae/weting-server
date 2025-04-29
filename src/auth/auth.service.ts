@@ -1,5 +1,4 @@
 import {
-  HttpException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -66,15 +65,15 @@ export class AuthService {
   }
 
   async login(memberId: string, kakaoAccessToken: string) {
+    const findUser = await this.userService.findUserOrNull(memberId);
+
+    if (!findUser.email) {
+      throw new UnauthorizedException(ERROR_CODES.ERR_015);
+    }
+
     const kakaoMemberId = await this.verifyKaKaoId(kakaoAccessToken);
 
     if (+memberId !== kakaoMemberId) {
-      throw new UnauthorizedException(ERROR_CODES.ERR_001);
-    }
-
-    const findUser = await this.userService.findUserOrNull(memberId);
-
-    if (!findUser) {
       throw new UnauthorizedException(ERROR_CODES.ERR_001);
     }
 
@@ -90,6 +89,7 @@ export class AuthService {
     const { memberId, kakaoAccessToken } = userDto;
 
     const kakaoId = await this.verifyKaKaoId(kakaoAccessToken);
+
     if (!kakaoId) {
       throw new UnauthorizedException(ERROR_CODES.ERR_001);
     }
@@ -226,18 +226,17 @@ export class AuthService {
 
   private async verifyKaKaoId(kakaoAccessToken: string) {
     try {
-      const req = await fetch(
-        'https://kapi.kakao.com/v1/user/access_token_info',
-        {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${kakaoAccessToken}`,
-          },
+      const req = await fetch('https://kapi.kakao.com/v2/user/me', {
+        method: 'GET',
+        headers: {
+          'Content-Type':
+            'Content-Type: application/x-www-form-urlencoded;charset=utf-8',
+          Authorization: `Bearer ${kakaoAccessToken}`,
         },
-      );
+      });
       const response = await req.json();
       return response.id;
-    } catch {
+    } catch (e) {
       throw new UnauthorizedException(ERROR_CODES.ERR_001);
     }
   }

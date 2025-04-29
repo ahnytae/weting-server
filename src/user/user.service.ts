@@ -38,14 +38,17 @@ export class UserService {
 
   async findUserOrNull(memberId: string) {
     try {
-      const findUser = await this.userRepository.findOneBy({ memberId });
+      const findUser = await this.userRepository.findOne({
+        where: { memberId },
+        relations: ['auth', 'email'],
+      });
 
       if (!findUser) {
         return null;
       }
 
       return findUser;
-    } catch {
+    } catch (e) {
       throw new UnauthorizedException(ERROR_CODES.ERR_001);
     }
   }
