@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -124,7 +125,7 @@ export class AuthService {
         html: `<h1>인증번호는 ${randomCode} 입니다.</h1>`,
       });
 
-      const saveEmail = await this.emailService.updateVerifyCode({
+      const saveEmail = await this.emailService.saveEmail({
         email: email,
         createdAt: new Date(),
         // Todo: Cache 저장 필요
@@ -140,6 +141,10 @@ export class AuthService {
     const { memberId } = findMail.user;
 
     const randomCode = findMail.randomCode;
+
+    if (email !== findMail.email) {
+      throw new BadRequestException(ERROR_CODES.ERR_013);
+    }
 
     if (randomCode !== +code) {
       throw new NotFoundException(ERROR_CODES.ERR_014);

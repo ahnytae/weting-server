@@ -29,10 +29,10 @@ export const ERROR_CODES = {
     message: '이미 가입된 회원 입니다.',
   } as const,
 
-  ERR_011: {
-    code: 'INVALID_EMAIL_CODE',
-    message: '유효하지 않은 이메일 인증 코드입니다.',
-  } as const,
+  // ERR_011: {
+  //   code: 'INVALID_EMAIL_CODE',
+  //   message: '유효하지 않은 이메일 인증 코드입니다.',
+  // } as const,
   ERR_012: {
     code: 'EMAIL_ALREADY_REGISTERED',
     message: '이미 등록된 이메일입니다.',

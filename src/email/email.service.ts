@@ -29,26 +29,14 @@ export default class EmailService {
     return this.nodemailerTransport.sendMail(options);
   }
 
-  async updateVerifyCode(email: Partial<Email>) {
-    try {
-      return await this.emailRepository.update(
-        { email: email.email },
-        {
-          ...email,
-          randomCode: email.randomCode,
-        },
-      );
-    } catch (e) {}
-  }
-
-  async saveEmail(email: Email) {
+  async saveEmail(email: Partial<Email>) {
     try {
       return await this.emailRepository.save({
         ...email,
         createdAt: new Date(),
         deletedAt: null,
       });
-    } catch (e) {
+    } catch {
       throw new HttpException('이메일 전송에 실패했습니다.', 500);
     }
   }
